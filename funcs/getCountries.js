@@ -1,9 +1,14 @@
 var axios = require("axios");
 var cheerio = require("cheerio");
 var countryUtils = require('./../utils/country_utils');
+const admin = require('firebase-admin');
+const moment = require('moment');
 
 var getcountries = async (keys, redis) => {
     let response;
+    const db = admin.firestore();
+    const messagin = admin.messaging();
+    let FieldValue = admin.firestore.FieldValue;
     try {
         response = await axios.get("https://www.worldometers.info/coronavirus/");
         if (response.status !== 200) {
@@ -33,6 +38,7 @@ var getcountries = async (keys, redis) => {
     const criticalColIndex = 7;
     const casesPerOneMillionColIndex = 8;
     const deathsPerOneMillionColIndex = 9;
+    const dayOfFirstCaseIndex = 10;
     // minus totalColumns to skip last row, which is total
     for (let i = 0; i < countriesTableCells.length - totalColumns; i += 1) {
         const cell = countriesTableCells[i];
@@ -135,10 +141,75 @@ var getcountries = async (keys, redis) => {
                 deathsPerOneMillion.trim().replace(/,/g, "") || "0"
             );
         }
+
+        // get the day of the first case in the country
+        if (i % totalColumns === dayOfFirstCaseIndex) {
+            let dayOfFirstCase = cell.children.length != 0 ? cell.children[0].data : "";
+            result[result.length - 1].dayOfFirstCase = dayOfFirstCase.trim().replace(/,/g, "") || "0";
+        }
     }
 
     const string = JSON.stringify(result);
     redis.set(keys.countries, string);
+    const fecha = await db
+        .collection('fecha')
+        .doc('fecha')
+        .get();
+    if (moment() < moment(fecha.data().timestamp)) {
+        const countries = await db.collection('countries').get();
+        let newCases = 0;
+        const mensajes = [];
+        let mensaje = {};
+        countries.forEach(country => {
+            let countryData = result.filter(obj => obj.country.toLowerCase() == country.data().country.toLowerCase());
+            countryData = countryData[0];
+            if (countryData.cases > country.data().cases) {
+                newCases = countryData.cases - country.data().cases;
+                mensaje = {
+                    country: countryData.country.toLowerCase(),
+                    newCases
+                };
+                mensajes.push(mensaje);
+                db.collection('countries').doc(countryData.country).update({cases: countryData.cases});
+            }
+        });
+        for (const msg of mensajes) {
+            db.collection('tokens')
+                .where('country', '==', msg.country)
+                .get()
+                .then(docs => {
+                    docs.forEach(doc => {
+                        const upper = msg.country.charAt(0).toUpperCase() + msg.country.substring(1);
+                        messagin
+                            .sendToDevice(doc.data().token, {
+                                notification: {
+                                    title: 'Nuevos infectados',
+                                    body: `Hay ${msg.newCases} nuevos infectados en ${upper}`,
+                                    icon:
+                                        'https://firebasestorage.googleapis.com/v0/b/covid-19-jp.appspot.com/o/covid19_v02_circle.png?alt=media&token=816c7cda-22de-447e-b39f-e00fcc52d7a6'
+                                }
+                            })
+                            .then(() => console.log('mensaje envíado'))
+                            .catch(err =>
+                                console.log('error en la notificación', err)
+                            );
+                    });
+                })
+                .catch(() => {})
+        }
+    } else {
+        const b = moment().endOf('day').format();
+        db.collection('fecha').doc('fecha').set({timestamp: b});
+        result.map(country => {
+            db.collection('countries')
+                .doc(country.country)
+                .set({
+                    country: country.country,
+                    cases: country.cases,
+                    timestamp: FieldValue.serverTimestamp()
+                });
+        });
+    }
     console.log(`Updated countries: ${result.length} countries`);
 }
 
