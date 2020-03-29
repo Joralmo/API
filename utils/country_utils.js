@@ -302,12 +302,12 @@ const getCountryData = (countryName) => {
                 iso3: data.iso3,
                 lat: data.lat,
                 long: data.long,
-                flag: `https://raw.githubusercontent.com/NovelCOVID/API/master/assets/flags/${data.iso2.toLowerCase()}.png`
+                flag: `https://raw.githubusercontent.com/Joralmo/API/master/assets/flags/${data.iso2.toLowerCase()}.png`
             };
         }
     }
 
-    return { iso2: null, iso3: null, _id: null, lat: 0, long: 0, flag: 'https://raw.githubusercontent.com/NovelCOVID/API/master/assets/flags/unknow.png' };
+    return { iso2: null, iso3: null, _id: null, lat: 0, long: 0, flag: 'https://raw.githubusercontent.com/Joralmo/API/master/assets/flags/unknow.png' };
 }
 
 searchesExcepted = ['UK', 'UAE', 'DR'];
