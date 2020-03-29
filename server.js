@@ -8,6 +8,8 @@ const Redis = require('ioredis');
 const scraper = require('./scraper');
 const countryMap = require('./funcs/countryMap');
 const country_utils = require('./utils/country_utils');
+var admin = require('firebase-admin');
+var serviceAccount = require('./covid-19-jp-firebase-adminsdk-ffufw-8c154a1321.json');
 
 app.use(cors());
 
@@ -16,6 +18,12 @@ const redis = new Redis(config.redis.host, {
   password: config.redis.password,
   port: config.redis.port
 })
+
+// initializing firebase
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://covid-19-jp.firebaseio.com"
+});
 
 const keys = config.keys;
 
