@@ -151,64 +151,108 @@ var getcountries = async (keys, redis) => {
 
     const string = JSON.stringify(result);
     redis.set(keys.countries, string);
-    const fecha = await db
-        .collection('fecha')
-        .doc('fecha')
-        .get();
-    if (moment() < moment(fecha.data().timestamp)) {
-        const countries = await db.collection('countries').get();
+    // const fecha = await db
+    //     .collection('fecha')
+    //     .doc('fecha')
+    //     .get();
+    if (!(await redis.get(keys.fecha))) {
+        console.log('Registro de fecha para actualizar países');
+        const b = moment().endOf('day').format();
+        redis.set(keys.fecha, b);
+    }
+    if (!(await redis.get(keys.countries_old))) {
+        console.log('Registro de países');
+        const arrayTemp = {};
+        let countryTemp = {};
+        result.map(country => {
+            countryTemp = {
+                country: country.country,
+                cases: country.cases
+            }
+            arrayTemp[country.country] = countryTemp;
+        });
+        redis.set(keys.countries_old, JSON.stringify(arrayTemp));
+    }
+    const fecha = await redis.get(keys.fecha);
+    console.log(moment().format(), moment(fecha).format());
+    if (moment() < moment(fecha)) {
+        console.log('usando países guardados');
+        let countries = await redis.get(keys.countries_old);
+        countries = JSON.parse(countries);
         let newCases = 0;
         const mensajes = [];
         let mensaje = {};
-        countries.forEach(country => {
-            let countryData = result.filter(obj => obj.country.toLowerCase() == country.data().country.toLowerCase());
+        let country;
+        Object.keys(countries).forEach(value => {
+            country = countries[value];
+            let countryData = result.filter(obj => obj.country.toLowerCase() == country.country.toLowerCase());
             countryData = countryData[0];
-            if (countryData.cases > country.data().cases) {
-                newCases = countryData.cases - country.data().cases;
+            if (countryData.cases > country.cases) {
+                newCases = countryData.cases - country.cases;
                 mensaje = {
                     country: countryData.country.toLowerCase(),
-                    newCases
+                    newCases,
+                    totalCases: countryData.cases
                 };
                 mensajes.push(mensaje);
-                db.collection('countries').doc(countryData.country).update({cases: countryData.cases});
+                countries[country.country].cases = countryData.cases;
+                // db.collection('countries').doc(countryData.country).update({cases: countryData.cases});
             }
         });
+        redis.set(keys.countries_old, JSON.stringify(countries));
         for (const msg of mensajes) {
+            console.log(msg);
             db.collection('tokens')
                 .where('country', '==', msg.country)
                 .get()
                 .then(docs => {
                     docs.forEach(doc => {
                         const upper = msg.country.charAt(0).toUpperCase() + msg.country.substring(1);
-                        messagin
-                            .sendToDevice(doc.data().token, {
-                                notification: {
-                                    title: 'Nuevos infectados',
-                                    body: `Hay ${msg.newCases} nuevos infectados en ${upper}`,
-                                    icon:
-                                        'https://firebasestorage.googleapis.com/v0/b/covid-19-jp.appspot.com/o/covid19_v02_circle.png?alt=media&token=816c7cda-22de-447e-b39f-e00fcc52d7a6'
-                                }
-                            })
-                            .then(() => console.log('mensaje envíado'))
-                            .catch(err =>
-                                console.log('error en la notificación', err)
-                            );
+                        try {
+                            messagin
+                                .sendToDevice(doc.data().token, {
+                                    notification: {
+                                        title: `${msg.newCases} Nuevos infectados`,
+                                        body: `Para un total de ${msg.totalCases} casos en ${upper}`,
+                                        icon:
+                                            'https://firebasestorage.googleapis.com/v0/b/covid-19-jp.appspot.com/o/covid19_v02_circle.png?alt=media&token=816c7cda-22de-447e-b39f-e00fcc52d7a6'
+                                    }
+                                })
+                                .then(() => console.log('mensaje envíado'))
+                                .catch(err =>
+                                    console.log('error en la notificación', err)
+                                );
+                        } catch (error) {
+                            console.log('Error messaging', error);
+                        }
                     });
                 })
                 .catch(() => {})
         }
     } else {
-        const b = moment().endOf('day').format();
-        db.collection('fecha').doc('fecha').set({timestamp: b});
+        // const b = moment().endOf('day').format();
+        // db.collection('fecha').doc('fecha').set({timestamp: b});
+        console.log('actualizando países');
+        const arrayTemp = {};
+        let countryTemp = {};
         result.map(country => {
-            db.collection('countries')
-                .doc(country.country)
-                .set({
-                    country: country.country,
-                    cases: country.cases,
-                    timestamp: FieldValue.serverTimestamp()
-                });
+            countryTemp = {
+                country: country.country,
+                cases: country.cases
+            }
+            arrayTemp[country.country] = countryTemp;
+            // db.collection('countries')
+            //     .doc(country.country)
+            //     .set({
+            //         country: country.country,
+            //         cases: country.cases,
+            //         timestamp: FieldValue.serverTimestamp()
+            //     });
         });
+        redis.set(keys.countries_old, JSON.stringify(arrayTemp));
+        console.log('Actualizando fecha');
+        const b = moment().endOf('day').format();
+        redis.set(keys.fecha, b);
     }
     console.log(`Updated countries: ${result.length} countries`);
 }
