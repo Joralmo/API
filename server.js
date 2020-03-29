@@ -33,7 +33,7 @@ const execAll = () => {
   scraper.getStates(keys, redis);
   scraper.jhuLocations.jhudata(keys, redis);
   scraper.jhuLocations.jhudata_v2(keys, redis);
-  scraper.historical.historical_v2(keys, redis);
+  scraper.historical.historicalV2(keys, redis);
 };
 execAll()
 setInterval(execAll, config.interval);
@@ -119,9 +119,15 @@ app.get("/v2/historical/", async function (req, res) {
   res.send(data);
 });
 
+app.get('/v2/historical/all', async (req, res) => {
+	const data = JSON.parse(await redis.get(keys.historical_v2));
+	const allData = await scraper.historical.getHistoricalAllDataV2(data);
+	res.send(allData);
+});
+
 app.get("/v2/historical/:country", async function (req, res) {
   let data = JSON.parse(await redis.get(keys.historical_v2));
-  const countryData = await scraper.historical.getHistoricalCountryData_v2(data, req.params.country.toLowerCase());
+  const countryData = await scraper.historical.getHistoricalCountryDataV2(data, req.params.country.toLowerCase());
   res.send(countryData);
 });
 
