@@ -119,11 +119,6 @@ const getCountries = async (keys, redis) => {
 	const result = fillResult(html);
 	const string = JSON.stringify(result);
 	redis.set(keys.countries, string);
-	if (!(await redis.get(keys.fecha))) {
-		console.log('Registro de fecha para actualizar países');
-		const b = moment().endOf('day').format();
-		redis.set(keys.fecha, b);
-	}
 	if (!(await redis.get(keys.countries_old))) {
 		console.log('Registro de países');
 		const arrayTemp = {};
@@ -136,6 +131,11 @@ const getCountries = async (keys, redis) => {
 			arrayTemp[country.country] = countryTemp;
 		});
 		redis.set(keys.countries_old, JSON.stringify(arrayTemp));
+	}
+	if (!(await redis.get(keys.fecha))) {
+		console.log('Registro de fecha para actualizar países');
+		const b = moment().endOf('day').format();
+		redis.set(keys.fecha, b);
 	}
 	const fecha = await redis.get(keys.fecha);
 	console.log(moment().format(), moment(fecha).format());
