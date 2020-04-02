@@ -131,11 +131,15 @@ const getCountries = async (keys, redis) => {
 			arrayTemp[country.country] = countryTemp;
 		});
 		redis.set(keys.countries_old, JSON.stringify(arrayTemp));
+	} else {
+		console.log('NO GUARDÓ LOS PAÍSES');
 	}
 	if (!(await redis.get(keys.fecha))) {
 		console.log('Registro de fecha para actualizar países');
 		const b = moment().endOf('day').format();
 		redis.set(keys.fecha, b);
+	} else {
+		console.log('NO GUARDÓ LA FECHA');
 	}
 	const fecha = await redis.get(keys.fecha);
 	console.log(moment().format(), moment(fecha).format());
