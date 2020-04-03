@@ -53,8 +53,9 @@ function fillResult(html, yesterday = false) {
 		const cell = countriesTableCells[i];
 		// get country
 		if (i % totalColumns === countryColIndex) {
-			const country = getCountryData(cell);
-			const countryData = countryUtils.getCountryData(country);
+			const countryData = countryUtils.getCountryData(getCountryData(cell));
+			// eslint-disable-next-line prefer-destructuring
+			const country = countryData.country ? countryData.country : getCountryData(cell);
 			delete countryData.country;
 			result.push({ country, countryInfo: countryData });
 		}
@@ -127,7 +128,7 @@ const getCountries = async (keys, redis) => {
 			countryTemp = {
 				country: country.country,
 				cases: country.cases
-			}
+			};
 			arrayTemp[country.country] = countryTemp;
 		});
 		redis.set(keys.countries_old, JSON.stringify(arrayTemp));
@@ -194,7 +195,7 @@ const getCountries = async (keys, redis) => {
 						}
 					});
 				})
-				.catch(() => {})
+				.catch(() => {});
 		}
 	} else {
 		console.log('actualizando países');
