@@ -10,13 +10,14 @@ const notifications = require('./funcs/notifications');
 const app = express();
 app.use(cors());
 
-setInterval(notifications, config.interval);
-
 // initializing firebase
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://covid-19-jp.firebaseio.com"
 });
+
+notifications();
+setInterval(notifications(), config.interval);
 
 app.get('/all', async (req, res) => {
 	res.send(await track.all());

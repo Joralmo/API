@@ -5,7 +5,8 @@
         "port": "6379"
     },
     "keys": {
-        "countries_old": "covidapi:countries_old"
+        "countries_old": "covidapi:countries_old",
+        "fecha": "covidapi:fecha"
     },
     "port": 3000,
     "interval": 600000

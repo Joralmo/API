@@ -3,8 +3,10 @@ var admin = require('firebase-admin');
 const moment = require('moment');
 const { redis, config } = require('../instances');
 const { keys } = config;
+const { NovelCovid } = require('novelcovid');
+const track = new NovelCovid();
 
-export const notifications = async () => {
+const notifications = async () => {
 	const db = admin.firestore();
 	const messagin = admin.messaging();
 	let result = await track.countries();
@@ -102,3 +104,5 @@ export const notifications = async () => {
 		redis.set(keys.fecha, b);
 	}
 }
+
+module.exports = notifications;
