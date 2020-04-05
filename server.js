@@ -4,7 +4,7 @@ var admin = require('firebase-admin');
 var serviceAccount = require('./covid-19-jp-firebase-adminsdk-ffufw-8c154a1321.json');
 const { NovelCovid } = require('novelcovid');
 const track = new NovelCovid();
-const { config } = require('../routes/instances');
+const { config } = require('./instances');
 const notifications = require('./funcs/notifications');
 
 const app = express();
