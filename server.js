@@ -1,14 +1,14 @@
 var express = require('express');
 var cors = require('cors');
-const swaggerUi = require('swagger-ui-express');
 var admin = require('firebase-admin');
 var serviceAccount = require('./covid-19-jp-firebase-adminsdk-ffufw-8c154a1321.json');
+const { NovelCovid } = require('novelcovid');
+const track = new NovelCovid();
+const { config } = require('./instances');
+const notifications = require('./funcs/notifications');
 
 const app = express();
 app.use(cors());
-
-const { redis, config, scraper } = require('./routes/instances');
-const { keys } = config;
 
 // initializing firebase
 admin.initializeApp({
@@ -16,60 +16,49 @@ admin.initializeApp({
   databaseURL: "https://covid-19-jp.firebaseio.com"
 });
 
-const execAll = () => {
-	scraper.getWorldometers.getCountries(keys, redis);
-	scraper.getWorldometers.getYesterday(keys, redis);
-	scraper.getAll(keys, redis);
-	scraper.getStates(keys, redis);
-	scraper.jhuLocations.jhudata(keys, redis);
-	scraper.jhuLocations.jhudataV2(keys, redis);
-	scraper.historical.historicalV2(keys, redis);
-};
-execAll();
-setInterval(execAll, config.interval);
+notifications();
+setInterval(notifications, config.interval);
 
+app.get('/all', async (req, res) => {
+	res.send(await track.all());
+});
 
-app.get('/', async (request, response) => {
-	response.redirect('https://github.com/novelcovid/api');
+app.get('/countries', async (req, res) => {
+	const { sort } = req.query;
+	let countries = await track.countries();
+	if (sort) {
+		countries = countries.sort((a, b) => a[sort] > b[sort] ? -1 : 1);
+	}
+	res.send(countries);
+});
+
+app.get('/countries/:query', async (req, res) => {
+	const { query } = req.params;
+	res.send(await track.countries(query));
+});
+
+app.get('/states', async (req, res) => {
+	res.send(await track.states());
+});
+
+app.get('/v2/historical', async (req, res) => {
+	res.send(await track.historical());
+});
+
+app.get('/v2/historical/all', async (req, res) => {
+	res.send(await track.historical(true));
+});
+
+app.get('/v2/historical/:query', async (req, res) => {
+	const { query } = req.params;
+	res.send(await track.historical(null, query));
+});
+
+app.get('/v2/historical/:query', async (req, res) => {
+	const { query } = req.params;
+	res.send(await track.historical(null, query));
 });
 
 const listener = app.listen(config.port, () => {
 	console.log(`Your app is listening on port ${listener.address().port}`);
 });
-
-app.get('/invite', async (req, res) => {
-	/* eslint max-len: off */
-	res.redirect('https://discordapp.com/oauth2/authorize?client_id=685268214435020809&scope=bot&permissions=537250880');
-});
-
-app.get('/support', async (req, res) => {
-	res.redirect('https://discord.gg/EvbMshU');
-});
-
-app.use('/public', express.static('assets'));
-app.use('/docs',
-	swaggerUi.serve,
-	swaggerUi.setup(null, {
-		explorer: true,
-		customSiteTitle: 'NovelCOVID 19 API',
-		customfavIcon: '/public/virus.png',
-		customCssUrl: '/public/apidocs/custom.css',
-		swaggerOptions: {
-			urls: [
-				{
-					name: 'version 2.0.0',
-					url: '/public/apidocs/swagger_v2.json'
-				},
-				{
-					name: 'version 1.0.0',
-					url: '/public/apidocs/swagger_v1.json'
-				}
-			]
-		}
-	})
-);
-
-app.use(require('./routes/api_worldometers'));
-app.use(require('./routes/api_historical'));
-app.use(require('./routes/api_jhucsse'));
-app.use(require('./routes/api_deprecated'));

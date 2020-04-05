@@ -1,6 +1,5 @@
 const Redis = require('ioredis');
-const config = require('../config.json');
-const scraper = require('../scraper');
+const config = require('./config.json');
 
 const redis = new Redis(config.redis.host, {
 	password: config.redis.password,
@@ -9,6 +8,5 @@ const redis = new Redis(config.redis.host, {
 
 module.exports = {
 	redis,
-	config,
-	scraper
+	config
 };

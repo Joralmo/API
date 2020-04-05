@@ -7,15 +7,12 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "axios": "^0.19.2",
-    "cheerio": "^0.22.0",
     "cors": "^2.8.5",
-    "csvtojson": "^2.0.10",
     "express": "^4.16.3",
     "firebase-admin": "^8.10.0",
     "ioredis": "*",
     "moment": "^2.24.0",
-    "swagger-ui-express": "^4.1.4"
+    "novelcovid": "^1.1.2"
   },
   "repository": {
     "url": "https://github.com/NovelCOVID/API"
