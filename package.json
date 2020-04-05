@@ -12,7 +12,7 @@
     "firebase-admin": "^8.10.0",
     "ioredis": "*",
     "moment": "^2.24.0",
-    "novelcovid": "^1.1.2",
+    "novelcovid": "^1.1.2"
   },
   "repository": {
     "url": "https://github.com/NovelCOVID/API"
