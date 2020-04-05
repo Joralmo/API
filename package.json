@@ -11,6 +11,7 @@
     "express": "^4.16.3",
     "firebase-admin": "^8.10.0",
     "ioredis": "*",
+    "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "novelcovid": "^1.1.2"
   },
