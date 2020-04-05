@@ -17,7 +17,7 @@ admin.initializeApp({
 });
 
 notifications();
-setInterval(notifications(), config.interval);
+setInterval(notifications, config.interval);
 
 app.get('/all', async (req, res) => {
 	res.send(await track.all());
