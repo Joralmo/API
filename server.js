@@ -6,6 +6,8 @@ const { NovelCovid } = require('novelcovid');
 const track = new NovelCovid();
 const { config } = require('./instances');
 const notifications = require('./funcs/notifications');
+const etarioColombia = require('./funcs/dataColombia')[0];
+const datosColombia = require('./funcs/dataColombia')[1];
 
 const app = express();
 app.use(cors());
@@ -58,6 +60,15 @@ app.get('/v2/historical/:query', async (req, res) => {
 	const { query } = req.params;
 	res.send(await track.historical(null, query));
 });
+
+app.get('/v2/etario-colombia', async (req, res) => {
+	res.send(await etarioColombia());
+});
+
+app.get('/v2/datos-colombia', async (req, res) => {
+	res.send(await datosColombia());
+});
+
 
 const listener = app.listen(config.port, () => {
 	console.log(`Your app is listening on port ${listener.address().port}`);
