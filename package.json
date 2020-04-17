@@ -7,6 +7,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "cors": "^2.8.5",
     "express": "^4.16.3",
     "firebase-admin": "^8.10.0",
@@ -16,7 +17,7 @@
     "novelcovid": "^1.1.2"
   },
   "repository": {
-    "url": "https://github.com/NovelCOVID/API"
+    "url": "https://github.com/Joralmo/API"
   },
   "license": "MIT",
   "keywords": [
