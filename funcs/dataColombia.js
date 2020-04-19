@@ -38,7 +38,11 @@ async function datosColombia() {
     type = formatArray(type, 'tipo', 'type');
     let originCountry = [];
     data.map(key => {
-        originCountry.push({pa_s_de_procedencia: key['pa_s_de_procedencia'].toUpperCase()})
+        if (key['pa_s_de_procedencia']) {
+            originCountry.push({pa_s_de_procedencia: key['pa_s_de_procedencia'].toUpperCase()})
+        } else {
+            originCountry.push({pa_s_de_procedencia: "NO REPORTADO"})
+        }
     });
     originCountry = formatArray(originCountry, 'pa_s_de_procedencia', 'country');
     attention = attentions.map(d => { return {attention: d.attention, quantity: d.quantity, color: randomColor()}});
