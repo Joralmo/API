@@ -8,11 +8,104 @@ const URLS = {
 };
 
 async function etarioColombia() {
-    const { data } = (await axios.get(URLS.ETARIO)).data;
-    let rangos = [];
-    for (let d of data[0].splice(1)) {
-        rangos.push({ rango: d[0], m: d[1], f: d[2] });
+    const { data } = await axios.get(
+        `${URLS.CIUDADES}?$$app_token=${config.appToken}&$limit=50000`
+    );
+    let rangos = [
+        {
+            rango: "0-9",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "10-19",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "20-29",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "30-39",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "40-49",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "50-59",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "60-69",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "70-79",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "80-89",
+            f: 0,
+            m: 0
+        },
+        {
+            rango: "90-99",
+            f: 0,
+            m: 0
+        }
+    ];
+    for (let i = 0; i <= 9; i++){
+        for (let rango of data) {
+            const { edad } = rango;
+            if (_.inRange(parseInt(edad), parseInt(`${i}0`), parseInt(`${i}9`))) {
+                if (rango.sexo == 'F') rangos[i].m += 1;
+                else rangos[i].f += 1;
+            }
+        }
     }
+    // for (let rango of data) {
+    //     const { edad } = rango;
+    //     if (_.inRange(parseInt(edad), 0, 9)) {
+    //         if (rango.sexo == 'F') rangos[0].m += 1;
+    //         else rangos[0].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 10, 19)) {
+    //         if (rango.sexo == 'F') rangos[1].m += 1;
+    //         else rangos[1].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 20, 29)) {
+    //         if (rango.sexo == 'F') rangos[2].m += 1;
+    //         else rangos[2].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 30, 39)) {
+    //         if (rango.sexo == 'F') rangos[3].m += 1;
+    //         else rangos[3].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 40, 49)) {
+    //         if (rango.sexo == 'F') rangos[4].m += 1;
+    //         else rangos[4].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 50, 59)) {
+    //         if (rango.sexo == 'F') rangos[5].m += 1;
+    //         else rangos[5].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 60, 69)) {
+    //         if (rango.sexo == 'F') rangos[6].m += 1;
+    //         else rangos[6].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 70, 79)) {
+    //         if (rango.sexo == 'F') rangos[7].m += 1;
+    //         else rangos[7].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 80, 89)) {
+    //         if (rango.sexo == 'F') rangos[8].m += 1;
+    //         else rangos[8].f += 1;
+    //     } else if (_.inRange(parseInt(edad), 90, 99)) {
+    //         if (rango.sexo == 'F') rangos[9].m += 1;
+    //         else rangos[9].f += 1;
+    //     }
+    // }
     return rangos;
 }
 
