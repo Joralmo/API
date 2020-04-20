@@ -24,5 +24,6 @@
     "API",
     "coronavirus",
     "covid"
-  ]
+  ],
+  "devDependencies": {}
 }
